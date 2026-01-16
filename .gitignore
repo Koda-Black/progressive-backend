@@ -1,0 +1,29 @@
+# Dependencies
+vendor/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+config.env
+
+# Logs
+*.log
+error_log
+
+# Cache
+.phpunit.result.cache
+.php_cs.cache
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+test_*.php
