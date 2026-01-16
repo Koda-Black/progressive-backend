@@ -15,6 +15,7 @@ use ProgressiveBar\Core\App;
 class CorsMiddleware
 {
     private array $allowedOrigins;
+    private bool $allowAllOrigins = false;
     private array $allowedMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'];
     private array $allowedHeaders = [
         'Content-Type',
@@ -29,7 +30,15 @@ class CorsMiddleware
     public function __construct()
     {
         $app = App::getInstance();
-        $this->allowedOrigins = $app->config('security.cors_origins', ['http://localhost:3000']);
+        $origins = $app->config('security.cors_origins', ['http://localhost:3000']);
+        
+        // Check if wildcard is set - allow all origins
+        if (in_array('*', $origins, true)) {
+            $this->allowAllOrigins = true;
+            $this->allowedOrigins = [];
+        } else {
+            $this->allowedOrigins = $origins;
+        }
     }
 
     public function handle(Request $request): Request
@@ -54,9 +63,22 @@ class CorsMiddleware
 
     private function isOriginAllowed(string $origin): bool
     {
+        // If wildcard is enabled, allow all origins
+        if ($this->allowAllOrigins) {
+            return true;
+        }
+        
         // In development, allow localhost variations
         if (($_ENV['APP_ENV'] ?? 'development') === 'development') {
             if (preg_match('/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/', $origin)) {
+                return true;
+            }
+        }
+        
+        // In production, also allow Vercel domains
+        if (($_ENV['APP_ENV'] ?? 'development') === 'production') {
+            // Allow any vercel.app subdomain
+            if (preg_match('/^https:\/\/[a-z0-9-]+\.vercel\.app$/', $origin)) {
                 return true;
             }
         }
