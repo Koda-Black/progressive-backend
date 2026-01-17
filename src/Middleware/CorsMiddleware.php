@@ -48,7 +48,6 @@ class CorsMiddleware
         // Check if origin is allowed and set CORS headers
         if ($origin && $this->isOriginAllowed($origin)) {
             header("Access-Control-Allow-Origin: $origin");
-            header('Access-Control-Allow-Credentials: true');
             header('Vary: Origin');
             
             // Handle preflight requests - must be inside the allowed origin block
