@@ -47,15 +47,9 @@ class Database
                 
                 // Enable SSL for production (TiDB Cloud requires SSL)
                 if ($useSSL) {
-                    $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
-                    // Use system CA certificates
-                    if (file_exists('/etc/ssl/certs/ca-certificates.crt')) {
-                        $options[PDO::MYSQL_ATTR_SSL_CA] = '/etc/ssl/certs/ca-certificates.crt';
-                    } elseif (file_exists('/etc/ssl/cert.pem')) {
-                        $options[PDO::MYSQL_ATTR_SSL_CA] = '/etc/ssl/cert.pem';
-                    } elseif (file_exists('/etc/pki/tls/certs/ca-bundle.crt')) {
-                        $options[PDO::MYSQL_ATTR_SSL_CA] = '/etc/pki/tls/certs/ca-bundle.crt';
-                    }
+                    // TiDB Cloud: Enable SSL but don't verify certificate (still encrypted)
+                    $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+                    $options[PDO::MYSQL_ATTR_SSL_CA] = '';
                 }
                 
                 self::$connection = new PDO($dsn, $username, $password, $options);
