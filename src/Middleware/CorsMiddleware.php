@@ -22,6 +22,7 @@ class CorsMiddleware
         'Authorization',
         'X-Requested-With',
         'X-CSRF-Token',
+        'X-Request-Time',
         'Accept',
         'Origin',
     ];
