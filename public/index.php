@@ -172,15 +172,24 @@ $router->get('/api/debug/tables', function (Request $req) {
 $router->get('/api/debug/data', function (Request $req) {
     try {
         $pdo = \ProgressiveBar\Core\Database::getConnection();
-        $menuCount = $pdo->query("SELECT COUNT(*) as count FROM menu_items")->fetch();
-        $adminCount = $pdo->query("SELECT COUNT(*) as count FROM admins")->fetch();
-        $admins = $pdo->query("SELECT id, email FROM admins")->fetchAll();
-        return Response::json([
-            'success' => true,
-            'menu_items_count' => $menuCount['count'],
-            'admins_count' => $adminCount['count'],
-            'admins' => $admins
-        ]);
+        
+        // Get all table structures
+        $result = ['tables' => []];
+        $tables = $pdo->query("SHOW TABLES")->fetchAll(\PDO::FETCH_COLUMN);
+        
+        foreach ($tables as $table) {
+            $cols = $pdo->query("DESCRIBE `$table`")->fetchAll();
+            $count = $pdo->query("SELECT COUNT(*) as c FROM `$table`")->fetch();
+            $sample = $pdo->query("SELECT * FROM `$table` LIMIT 1")->fetch();
+            $result['tables'][$table] = [
+                'columns' => array_column($cols, 'Field'),
+                'types' => array_combine(array_column($cols, 'Field'), array_column($cols, 'Type')),
+                'count' => $count['c'],
+                'sample' => $sample
+            ];
+        }
+        
+        return Response::json($result);
     } catch (\Exception $e) {
         return Response::json([
             'success' => false,
