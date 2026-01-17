@@ -1,18 +1,8 @@
 RewriteEngine On
 
-# Handle CORS preflight requests - send to PHP
-RewriteCond %{REQUEST_METHOD} OPTIONS
-RewriteRule ^(.*)$ index.php [QSA,L]
-
-# Redirect all requests to index.php
+# ALL requests go through PHP (including OPTIONS for CORS)
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [QSA,L]
 
-# Set CORS headers at Apache level as backup
-<IfModule mod_headers.c>
-    Header always set Access-Control-Allow-Origin "*"
-    Header always set Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, X-CSRF-Token, Accept, Origin"
-    Header always set Access-Control-Max-Age "86400"
-</IfModule>
+# NOTE: CORS headers are handled by PHP, not Apache
