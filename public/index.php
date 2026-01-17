@@ -151,6 +151,23 @@ $router->get('/api/debug/db', function (Request $req) {
     }
 });
 
+// Debug: Check tables
+$router->get('/api/debug/tables', function (Request $req) {
+    try {
+        $pdo = \ProgressiveBar\Core\Database::getConnection();
+        $tables = $pdo->query("SHOW TABLES")->fetchAll(\PDO::FETCH_COLUMN);
+        return Response::json([
+            'success' => true,
+            'tables' => $tables
+        ]);
+    } catch (\Exception $e) {
+        return Response::json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
 // Menu endpoints
 $router->get('/api/menu', 'MenuController@index');
 $router->get('/api/menu/{id}', 'MenuController@show');
