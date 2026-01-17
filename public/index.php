@@ -8,6 +8,42 @@
 
 declare(strict_types=1);
 
+// ============================================
+// CORS HEADERS - MUST BE FIRST!
+// ============================================
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+// Allow Vercel, localhost, and Koyeb domains
+$allowedPatterns = [
+    '/^https:\/\/[a-z0-9-]+\.vercel\.app$/',
+    '/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/',
+    '/^https:\/\/[a-z0-9-]+\.koyeb\.app$/',
+];
+
+$originAllowed = false;
+foreach ($allowedPatterns as $pattern) {
+    if (preg_match($pattern, $origin)) {
+        $originAllowed = true;
+        break;
+    }
+}
+
+if ($originAllowed && $origin) {
+    header("Access-Control-Allow-Origin: $origin");
+    header("Access-Control-Allow-Credentials: true");
+    header("Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS");
+    header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-CSRF-Token, Accept, Origin");
+    header("Access-Control-Max-Age: 86400");
+    header("Vary: Origin");
+}
+
+// Handle preflight immediately
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit();
+}
+// ============================================
+
 // Error handling
 error_reporting(E_ALL);
 ini_set('display_errors', '0');
@@ -20,7 +56,6 @@ use ProgressiveBar\Core\App;
 use ProgressiveBar\Core\Request;
 use ProgressiveBar\Core\Response;
 use ProgressiveBar\Core\Router;
-use ProgressiveBar\Middleware\CorsMiddleware;
 use ProgressiveBar\Middleware\RateLimitMiddleware;
 use ProgressiveBar\Middleware\SecurityMiddleware;
 use ProgressiveBar\Middleware\AuthMiddleware;
@@ -67,9 +102,8 @@ set_exception_handler(function (Throwable $e) {
 // Create request from globals
 $request = Request::createFromGlobals();
 
-// Apply global middleware stack
+// Apply global middleware stack (CORS is handled at top of file)
 $middlewareStack = [
-    new CorsMiddleware(),      // CORS headers
     new SecurityMiddleware(),   // XSS, CSRF, injection protection
     new RateLimitMiddleware(), // Rate limiting
 ];
