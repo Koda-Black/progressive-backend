@@ -129,6 +129,28 @@ $router->get('/api/health', function (Request $req) {
     return Response::json(['status' => 'ok', 'timestamp' => time()]);
 });
 
+// Debug: Test database connection
+$router->get('/api/debug/db', function (Request $req) {
+    try {
+        $pdo = \ProgressiveBar\Core\Database::getConnection();
+        $result = $pdo->query("SELECT 1 as test")->fetch();
+        return Response::json([
+            'success' => true,
+            'message' => 'Database connected',
+            'test' => $result,
+            'env' => $_ENV['APP_ENV'] ?? getenv('APP_ENV') ?: 'not set',
+            'host' => $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: 'not set'
+        ]);
+    } catch (\Exception $e) {
+        return Response::json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'env' => $_ENV['APP_ENV'] ?? getenv('APP_ENV') ?: 'not set',
+            'host' => $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: 'not set'
+        ], 500);
+    }
+});
+
 // Menu endpoints
 $router->get('/api/menu', 'MenuController@index');
 $router->get('/api/menu/{id}', 'MenuController@show');
