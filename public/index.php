@@ -168,6 +168,27 @@ $router->get('/api/debug/tables', function (Request $req) {
     }
 });
 
+// Debug: Check data counts and admin
+$router->get('/api/debug/data', function (Request $req) {
+    try {
+        $pdo = \ProgressiveBar\Core\Database::getConnection();
+        $menuCount = $pdo->query("SELECT COUNT(*) as count FROM menu_items")->fetch();
+        $adminCount = $pdo->query("SELECT COUNT(*) as count FROM admins")->fetch();
+        $admins = $pdo->query("SELECT id, email FROM admins")->fetchAll();
+        return Response::json([
+            'success' => true,
+            'menu_items_count' => $menuCount['count'],
+            'admins_count' => $adminCount['count'],
+            'admins' => $admins
+        ]);
+    } catch (\Exception $e) {
+        return Response::json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
 // Menu endpoints
 $router->get('/api/menu', 'MenuController@index');
 $router->get('/api/menu/{id}', 'MenuController@show');
